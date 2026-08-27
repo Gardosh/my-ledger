@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/uriga/Downloads/dashboard_9.html -->
+<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_12.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
@@ -29,7 +29,7 @@
     --income-tint: rgba(47, 107, 79, 0.07);
 
     /* ---- Type tokens ---- */
-    --font-display: 'Instrument Serif', serif;   /* money figures */
+    --font-display: 'Bodoni Moda', serif;   /* money figures */
     --font-body: 'IBM Plex Sans', sans-serif; /* UI text */
     --font-mono: 'IBM Plex Mono', monospace;  /* labels, dates, stamps */
   }
@@ -222,7 +222,6 @@
     padding: 3px 8px;
     border-radius: 20px;
     border: 1px solid currentColor;
-    transform: rotate(-1.2deg);
     white-space: nowrap;
   }
 
@@ -400,7 +399,7 @@
               Overall
               <a onclick="event.stopPropagation(); openBalancesEdit()">Edit</a>
             </div>
-            <div class="donut-card" id="donutCardOverall"><div class="empty-note">Network error loading balances.</div></div>
+            <div class="donut-card" id="donutCardOverall"><div class="empty-note">Couldn't load this chart — make sure your Sheet has a "Balances" tab with headers Savings | StockExchange in row 1.</div></div>
           </div>
         </div>
       </div>
