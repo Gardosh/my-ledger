@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/uriga/Downloads/dashboard_7.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./index_files/css2" rel="stylesheet">
+<style>
+  /* ====================================================
+     CONFIG — paste your Apps Script Web App URL here
+     ==================================================== */
+  :root {
+    /* ---- Color tokens (ledger / accounting-paper palette) ---- */
+    --paper: #F4F6F1;
+    --paper-stripe: #E7EEE2;
+    --ink: #1F2A24;
+    --ink-soft: #5B6660;
+    --line: #D6DDD0;
+    --income: #2F6B4F;
+    --expense: #A23B2E;
+    --gold: #C99A3B;
+    --card: #FFFFFF;
+
+    /* ---- Type tokens ---- */
+    --font-display: 'Instrument Serif', serif;   /* money figures */
+    --font-body: 'IBM Plex Sans', sans-serif; /* UI text */
+    --font-mono: 'IBM Plex Mono', monospace;  /* labels, dates, stamps */
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    height: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ---------- Header ---------- */
+  header.top {
+    padding: 20px 20px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .month-nav button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+  }
+  .month-label { min-width: 130px; text-align: center; color: var(--ink); font-weight: 500; }
+
+  /* ---------- Views ---------- */
+  main { flex: 1; overflow-y: auto; padding: 0 20px 100px; }
+  .view { display: none; }
+  .view.active { display: block; animation: fade .18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+
+  /* ---------- Balance hero ---------- */
+  .balance-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 24px 22px;
+    margin: 12px 0 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .balance-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 27px,
+      var(--paper-stripe) 27px,
+      var(--paper-stripe) 54px
+    );
+    opacity: .5;
+    pointer-events: none;
+  }
+  .balance-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    position: relative;
+  }
+  .balance-figure {
+    font-family: var(--font-display);
+    font-size: 44px;
+    font-weight: 500;
+    margin: 6px 0 16px;
+    position: relative;
+    font-variant-numeric: tabular-nums;
+  }
+  .balance-figure.pos { color: var(--income); }
+  .balance-figure.neg { color: var(--expense); }
+
+  .chip-row { display: flex; gap: 10px; position: relative; }
+  .chip {
+    flex: 1;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .chip .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  .chip .value { font-family: var(--font-display); font-size: 19px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .chip.income .value { color: var(--income); }
+  .chip.expense .value { color: var(--expense); }
+
+  /* ---------- Section headers ---------- */
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 22px 2px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title a { color: var(--gold); text-decoration: none; font-size: 11px; }
+
+  .dist-dots { display: flex; gap: 6px; }
+  .dist-dots .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--line); cursor: pointer;
+  }
+  .dist-dots .dot.active { background: var(--gold); }
+
+  .dist-track {
+    display: flex;
+    width: 200%;
+    transition: transform .25s ease;
+  }
+  .dist-slide { width: 50%; flex-shrink: 0; }
+  .dist-slide:first-child { padding-right: 8px; }
+  .dist-slide:last-child { padding-left: 8px; }
+  .dist-slide-label {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 8px; display: flex; justify-content: space-between;
+  }
+  .dist-slide-label a { color: var(--gold); text-decoration: none; }
+
+  /* ---------- Donut ---------- */
+  .donut-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 130px;
+  }
+  .donut-card svg { flex-shrink: 0; }
+  .legend { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .legend-name { flex: 1; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend-amount { font-family: var(--font-mono); color: var(--ink-soft); font-size: 11.5px; }
+  .empty-note { color: var(--ink-soft); font-size: 13px; padding: 6px 2px; }
+
+  /* ---------- Stamp pill (category tag) ---------- */
+  .stamp {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+    transform: rotate(-1.2deg);
+    white-space: nowrap;
+  }
+
+  /* ---------- List rows (transactions / recurring) ---------- */
+  .row-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .row-left { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .row-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .row-main { min-width: 0; }
+  .row-name { font-size: 14.5px; font-weight: 500; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-meta { display: flex; align-items: center; gap: 8px; }
+  .row-date { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-soft); }
+  .row-amount { font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .row-amount.pos { color: var(--income); }
+  .row-amount.neg { color: var(--expense); }
+
+  .day-divider { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-soft); margin: 16px 2px 8px; letter-spacing: .06em; text-transform: uppercase; }
+
+  /* ---------- Bottom nav ---------- */
+  nav.tabbar {
+    position: sticky;
+    bottom: 0;
+    background: var(--card);
+    border-top: 1px solid var(--line);
+    display: flex;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  nav.tabbar button {
+    flex: 1;
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 0;
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  nav.tabbar button.active { color: var(--ink); }
+  nav.tabbar button .icon { font-size: 19px; line-height: 1; }
+  nav.tabbar button.fab .icon {
+    background: var(--ink);
+    color: var(--paper);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  /* ---------- Modal / sheet ---------- */
+  .sheet-overlay {
+    position: fixed; inset: 0;
+    background: rgba(31,42,36,0.35);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 50;
+  }
+  .sheet-overlay.open { display: flex; }
+  .sheet {
+    background: var(--card);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 22px 22px 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sheet h2 { font-family: var(--font-display); font-weight: 500; font-size: 21px; margin: 4px 0 18px; }
+
+  .toggle-row { display: flex; background: var(--paper); border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+  .toggle-row button {
+    flex: 1; border: none; background: none; padding: 9px; border-radius: 9px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--ink-soft); cursor: pointer;
+  }
+  .toggle-row button.active.expense { background: var(--expense); color: #fff; }
+  .toggle-row button.active.income { background: var(--income); color: #fff; }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px;
+    font-family: var(--font-body); font-size: 15px; color: var(--ink); background: var(--paper);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .amount-input { font-family: var(--font-display); font-size: 22px !important; }
+
+  .submit-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: var(--ink); color: var(--paper); font-family: var(--font-body);
+    font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px;
+  }
+  .submit-btn:disabled { opacity: .5; }
+  .close-x { position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; color: var(--ink-soft); cursor: pointer; }
+
+  .status-msg { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; min-height: 16px; }
+
+  .config-warning {
+    margin: 40px 20px; padding: 16px; border: 1px dashed var(--expense); border-radius: 12px;
+    font-size: 13px; color: var(--expense); font-family: var(--font-mono);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <div class="month-nav">
+      <button onclick="shiftMonth(-1)">‹</button>
+      <span class="month-label" id="monthLabel">August 2026</span>
+      <button onclick="shiftMonth(1)">›</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HOME VIEW -->
+    <section class="view active" id="view-home">
+      <div class="balance-card">
+        <div class="balance-eyebrow">Monthly Balance</div>
+        <div class="balance-figure" id="balanceFigure">₪0</div>
+        <div class="chip-row">
+          <div class="chip income"><div class="label">Income</div><div class="value" id="incomeVal">₪0</div></div>
+          <div class="chip expense"><div class="label">Expense</div><div class="value" id="expenseVal">₪0</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        Money Distribution
+        <span class="dist-dots">
+          <span class="dot active" id="dot0" onclick="showDist(0)"></span>
+          <span class="dot" id="dot1" onclick="showDist(1)"></span>
+        </span>
+      </div>
+      <div class="dist-track" id="distTrack">
+        <div class="dist-slide">
+          <div class="dist-slide-label">By Category</div>
+          <div class="donut-card" id="donutCard">
+            <div class="empty-note">No expenses yet this month.</div>
+          </div>
+        </div>
+        <div class="dist-slide">
+          <div class="dist-slide-label">
+            Overall
+            <a onclick="openBalancesEdit()">Edit</a>
+          </div>
+          <div class="donut-card" id="donutCardOverall">
+            <div class="empty-note">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Upcoming <a onclick="switchTab(&#39;recurring&#39;)">See all</a></div>
+      <div id="upcomingPreview"><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon">🔁</div>
+          <div class="row-main">
+            <div class="row-name">Partner</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#3B5B6B">Subscriptions</span>
+              <span class="row-date">Monthly · due 02 Aug</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount neg">-₪40</div>
+      </div><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon">💼</div>
+          <div class="row-main">
+            <div class="row-name">משכורת</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#2F6B4F">Salary</span>
+              <span class="row-date">Monthly · due 01 Sept</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount pos">₪8,000</div>
+      </div></div>
+    </section>
+
+    <!-- TRANSACTIONS VIEW -->
+    <section class="view" id="view-transactions">
+      <div class="section-title">This Month's Transactions</div>
+      <div id="txList"><div class="empty-note">No transactions yet.</div></div>
+    </section>
+
+    <!-- RECURRING VIEW -->
+    <section class="view" id="view-recurring">
+      <div class="section-title">Recurring Income / Expenses</div>
+      <div id="recurringList"><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon">🔁</div>
+          <div class="row-main">
+            <div class="row-name">Partner</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#3B5B6B">Subscriptions</span>
+              <span class="row-date">Monthly · due 02 Aug</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount neg">-₪40</div>
+      </div><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon">💼</div>
+          <div class="row-main">
+            <div class="row-name">משכורת</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#2F6B4F">Salary</span>
+              <span class="row-date">Monthly · due 01 Sept</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount pos">₪8,000</div>
+      </div></div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" data-tab="home" onclick="switchTab(&#39;home&#39;)">
+      <span class="icon">⌂</span>Home
+    </button>
+    <button class="tab-btn" data-tab="transactions" onclick="switchTab(&#39;transactions&#39;)">
+      <span class="icon">≡</span>Transactions
+    </button>
+    <button class="fab" onclick="openSheet()">
+      <span class="icon">+</span>
+    </button>
+    <button class="tab-btn" data-tab="recurring" onclick="switchTab(&#39;recurring&#39;)">
+      <span class="icon">↻</span>Recurring
+    </button>
+    <button class="tab-btn" onclick="loadAll()">
+      <span class="icon">⟳</span>Refresh
+    </button>
+  </nav>
+</div>
+
+<!-- ADD SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet">
+    <button class="close-x" onclick="closeSheet()">✕</button>
+    <h2 id="sheetTitle">Add Entry</h2>
+
+    <div class="toggle-row">
+      <button type="button" id="modeExpense" class="active expense" onclick="setEntryMode(&#39;Expense&#39;)">Expense</button>
+      <button type="button" id="modeIncome" class="income" onclick="setEntryMode(&#39;Income&#39;)">Income</button>
+    </div>
+
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="fName" placeholder="e.g. Super-Pharm">
+    </div>
+    <div class="field">
+      <label>Amount (₪)</label>
+      <input type="number" inputmode="decimal" class="amount-input" id="fAmount" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select id="fCategory"></select>
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="fDate">
+    </div>
+    <div class="field">
+      <label>Description (optional)</label>
+      <input type="text" id="fDescription" placeholder="">
+    </div>
+
+    <!-- Recurring-only fields -->
+    <div id="recurringFields" style="display:none;">
+      <div class="field">
+        <label>Frequency</label>
+        <select id="fFrequency">
+          <option>Monthly</option>
+          <option>Weekly</option>
+          <option>Yearly</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Next due date</label>
+        <input type="date" id="fNextDue">
+      </div>
+      <div class="field">
+        <label>Icon (optional)</label>
+        <input type="text" id="fIcon" placeholder="Leave blank to use the category icon, or paste an emoji e.g. 🎬" maxlength="4">
+      </div>
+      <div class="field">
+        <label>Or upload a logo image (JPEG/PNG)</label>
+        <input type="file" id="fIconImage" accept="image/png, image/jpeg" onchange="handleIconImage(event)">
+        <div id="iconPreviewWrap" style="display:none; margin-top:8px; align-items:center; gap:8px;">
+          <img id="iconPreview" style="width:34px; height:34px; border-radius:10px; object-fit:cover; border:1px solid var(--line);">
+          <button type="button" onclick="clearIconImage()" style="background:none; border:none; color:var(--expense); font-size:12px; cursor:pointer;">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitEntry()">Save</button>
+    <button id="deleteBtn" onclick="deleteEntry()" style="display:none; width:100%; padding:12px; border:1px solid var(--expense); border-radius:12px; background:none; color:var(--expense); font-family:var(--font-body); font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">Delete</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+</div>
+
+<!-- BALANCES EDIT SHEET -->
+<div class="sheet-overlay" id="balancesOverlay" onclick="if(event.target===this) closeBalancesEdit()">
+  <div class="sheet">
+    <button class="close-x" onclick="closeBalancesEdit()">✕</button>
+    <h2>Overall Balances</h2>
+    <div class="field">
+      <label>Savings (₪)</label>
+      <input type="number" inputmode="decimal" class="amount-input" id="balSavings" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Stock Exchange (₪)</label>
+      <input type="number" inputmode="decimal" class="amount-input" id="balStock" placeholder="0">
+    </div>
+    <button class="submit-btn" id="balSubmitBtn" onclick="saveBalances()">Save</button>
+    <div class="status-msg" id="balStatusMsg"></div>
+  </div>
+</div>
+
+<script>
+  /* ==========================================================
+     1. CONFIG — paste your Apps Script Web App URL below
+     ========================================================== */
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx8UuxLFF6T6ZYjP3erbtkSDHFzLD40H5EC1V6CcIdzwnt1xT-LarHt1RbIVaHu60xIWw/exec";
+
+  const EXPENSE_CATEGORIES = ['Subscriptions','Eating Out','Army','Lifestyle & Health','Events/Attractions','Groceries','Transportation','Housing & Bills','Friends/Social','Shopping','Other'];
+  const INCOME_CATEGORIES = ['Salary','Gift','Refund','Freelance','Other'];
+
+  const CATEGORY_COLORS = {
+    'Subscriptions':'#3B5B6B', 'Eating Out':'#A23B2E', 'Army':'#5B7B3F',
+    'Lifestyle & Health':'#8C4B6B', 'Events/Attractions':'#C99A3B', 'Groceries':'#2F6B4F',
+    'Transportation':'#3F4F6B', 'Housing & Bills':'#7A5C3E', 'Friends/Social':'#B0793B',
+    'Shopping':'#4F6B5B', 'Other':'#6B4F3B',
+    'Salary':'#2F6B4F', 'Gift':'#C99A3B', 'Refund':'#3B5B6B', 'Freelance':'#8C4B6B'
+  };
+
+  const CATEGORY_ICONS = {
+    'Subscriptions':'🔁', 'Eating Out':'🍽️', 'Army':'🎖️',
+    'Lifestyle & Health':'💊', 'Events/Attractions':'🎟️', 'Groceries':'🛒',
+    'Transportation':'🚌', 'Housing & Bills':'🏠', 'Friends/Social':'🤝',
+    'Shopping':'🛍️', 'Other':'📎',
+    'Salary':'💼', 'Gift':'🎁', 'Refund':'↩️', 'Freelance':'💻'
+  };
+
+  let currentMonth = new Date(); // tracks which month we're viewing
+  let currentTab = 'home';
+  let entryMode = 'Expense';
+  let sheetContext = 'transaction'; // or 'recurring'
+  let uploadedIconDataUrl = '';
+  let currentDist = 0;
+  let lastBalances = { savings: 0, stockExchange: 0 };
+  let lastMonthExpense = 0;
+
+  const OVERALL_COLORS = { expense: '#A23B2E', savings: '#4A6FA5', stock: '#C99A3B' };
+
+  function monthKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
+  function monthLabel(d) {
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+  function fmt(n) {
+    const sign = n < 0 ? '-' : '';
+    return sign + '₪' + Math.abs(n).toLocaleString(undefined, {maximumFractionDigits:0});
+  }
+
+  function shiftMonth(delta) {
+    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
+    loadAll();
+  }
+
+  function showDist(i) {
+    currentDist = i;
+    document.getElementById('distTrack').style.transform = `translateX(-${i * 50}%)`;
+    document.getElementById('dot0').classList.toggle('active', i === 0);
+    document.getElementById('dot1').classList.toggle('active', i === 1);
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + tab).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  }
+
+  /* ---------- Networking ---------- */
+  async function apiGet(params) {
+    const url = BACKEND_URL + '?' + new URLSearchParams(params).toString();
+    const res = await fetch(url);
+    return res.json();
+  }
+  async function apiPost(body) {
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight with Apps Script
+      body: JSON.stringify(body)
+    });
+    return res.json();
+  }
+
+  /* ---------- Load & render (with caching + prefetch) ---------- */
+  let monthCache = {};   // key -> { summary, transactions }
+  let recurringCache = null;
+  let balancesCache = null;
+
+  async function fetchMonth(key) {
+    const [summaryRes, txRes] = await Promise.all([
+      apiGet({ type: 'summary', month: key }),
+      apiGet({ type: 'transactions', month: key })
+    ]);
+    if (summaryRes.success && txRes.success) {
+      monthCache[key] = { summary: summaryRes.data, transactions: txRes.data };
+    }
+    return monthCache[key];
+  }
+
+  function renderMonthFromCache(key) {
+    const data = monthCache[key];
+    if (!data) return false;
+    renderSummary(data.summary);
+    renderTransactions(data.transactions);
+    return true;
+  }
+
+  function neighborKeys(d) {
+    const prev = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    return [monthKey(prev), monthKey(next)];
+  }
+
+  async function loadAll() {
+    if (BACKEND_URL.includes('PASTE_YOUR')) {
+      document.getElementById('app').innerHTML = '<div class="config-warning">Set BACKEND_URL at the top of the &lt;script&gt; section to your Apps Script Web App URL before this will work.</div>';
+      return;
+    }
+    document.getElementById('monthLabel').textContent = monthLabel(currentMonth);
+    const key = monthKey(currentMonth);
+
+    // Fast path — render instantly from cache if we already have this month
+    const hadCache = renderMonthFromCache(key);
+    if (recurringCache) renderRecurring(recurringCache);
+    if (balancesCache) { lastBalances = balancesCache; renderOverallDonut(); }
+
+    // Fetch fresh data. On first visit this is what actually populates the view;
+    // on a cached visit it silently revalidates in the background.
+    const jobs = [
+      fetchMonth(key).then(data => {
+        if (data && monthKey(currentMonth) === key) { renderSummary(data.summary); renderTransactions(data.transactions); }
+      })
+    ];
+    jobs.push(apiGet({ type: 'recurring' }).then(res => {
+      if (res.success) { recurringCache = res.data; renderRecurring(res.data); }
+    }));
+    jobs.push(apiGet({ type: 'balances' }).then(res => {
+      if (res.success) { balancesCache = res.data; lastBalances = res.data; renderOverallDonut(); }
+    }));
+    await Promise.all(jobs);
+
+    // Prefetch neighboring months in the background so switching feels instant next time
+    neighborKeys(currentMonth).forEach(k => { if (!monthCache[k]) fetchMonth(k); });
+  }
+
+  function invalidateAndReload() {
+    monthCache = {};
+    recurringCache = null;
+    loadAll();
+  }
+
+  function renderSummary(s) {
+    lastMonthExpense = s.expense;
+    const balFig = document.getElementById('balanceFigure');
+    balFig.textContent = fmt(s.balance);
+    balFig.className = 'balance-figure ' + (s.balance >= 0 ? 'pos' : 'neg');
+    document.getElementById('incomeVal').textContent = fmt(s.income);
+    document.getElementById('expenseVal').textContent = fmt(s.expense);
+    renderDonut(s.byCategory, s.expense);
+  }
+
+  function renderDonut(byCategory, total) {
+    const card = document.getElementById('donutCard');
+    const entries = Object.entries(byCategory || {}).sort((a,b) => b[1]-a[1]);
+    if (!entries.length || !total) {
+      card.innerHTML = '<div class="empty-note">No expenses yet this month.</div>';
+      return;
+    }
+    const r = 46, cx = 60, cy = 60, strokeW = 18, circumference = 2 * Math.PI * r;
+    let offset = 0;
+    let arcs = '';
+    entries.forEach(([cat, amt]) => {
+      const frac = amt / total;
+      const len = frac * circumference;
+      const color = CATEGORY_COLORS[cat] || '#999';
+      arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeW}"
+                stroke-dasharray="${len} ${circumference-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
+      offset += len;
+    });
+    const legend = entries.map(([cat, amt]) => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${CATEGORY_COLORS[cat]||'#999'}"></div>
+        <div class="legend-name">${cat}</div>
+        <div class="legend-amount">${fmt(-amt)}</div>
+      </div>`).join('');
+    card.innerHTML = `
+      <svg width="120" height="120" viewBox="0 0 120 120">${arcs}</svg>
+      <div class="legend">${legend}</div>`;
+  }
+
+  let lastTransactions = [];
+
+  function renderTransactions(list) {
+    lastTransactions = list;
+    const el = document.getElementById('txList');
+    if (!list.length) { el.innerHTML = '<div class="empty-note">No transactions yet.</div>'; return; }
+    list.sort((a,b) => new Date(b.date) - new Date(a.date));
+    el.innerHTML = list.map(t => {
+      const isPos = t.amount >= 0;
+      const color = CATEGORY_COLORS[t.category] || '#999';
+      const d = new Date(t.date);
+      const icon = CATEGORY_ICONS[t.category] || '📎';
+      return `<div class="row-card" onclick="openEditTransaction('${t.id}')" style="cursor:pointer;">
+        <div class="row-left">
+          <div class="row-icon">${renderIcon(icon)}</div>
+          <div class="row-main">
+            <div class="row-name">${escapeHtml(t.name)}</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:${color}">${escapeHtml(t.category)}</span>
+              <span class="row-date">${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount ${isPos?'pos':'neg'}">${fmt(t.amount)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderRecurring(list) {
+    const sorted = [...list].sort((a,b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
+    const full = document.getElementById('recurringList');
+    const preview = document.getElementById('upcomingPreview');
+    if (!list.length) {
+      full.innerHTML = '<div class="empty-note">Nothing added yet.</div>';
+      preview.innerHTML = '<div class="empty-note">Nothing recurring added yet.</div>';
+      return;
+    }
+    const rowHtml = (r) => {
+      const isPos = r.amount >= 0;
+      const color = CATEGORY_COLORS[r.category] || '#999';
+      const due = new Date(r.nextDueDate);
+      const icon = (r.icon && r.icon.trim()) ? r.icon : (CATEGORY_ICONS[r.category] || '📎');
+      return `<div class="row-card">
+        <div class="row-left">
+          <div class="row-icon">${renderIcon(icon)}</div>
+          <div class="row-main">
+            <div class="row-name">${escapeHtml(r.name)}</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:${color}">${escapeHtml(r.category)}</span>
+              <span class="row-date">${r.frequency} · due ${due.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount ${isPos?'pos':'neg'}">${fmt(r.amount)}</div>
+      </div>`;
+    };
+    full.innerHTML = sorted.map(rowHtml).join('');
+    preview.innerHTML = sorted.slice(0,3).map(rowHtml).join('');
+  }
+
+  function handleIconImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Compress to a small square so it stays cheap to store in a Sheet cell
+        const size = 64;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        // cover-fit crop
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        uploadedIconDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        document.getElementById('iconPreview').src = uploadedIconDataUrl;
+        document.getElementById('iconPreviewWrap').style.display = 'flex';
+        document.getElementById('fIcon').value = ''; // image takes precedence over emoji text
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearIconImage() {
+    uploadedIconDataUrl = '';
+    document.getElementById('fIconImage').value = '';
+    document.getElementById('iconPreviewWrap').style.display = 'none';
+  }
+
+  function renderIcon(iconValue) {
+    if (iconValue && iconValue.startsWith('data:image')) {
+      return `<img src="${iconValue}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" />`;
+    }
+    return iconValue || '📎';
+  }
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str ?? '';
+    return d.innerHTML;
+  }
+
+  function renderOverallDonut() {
+    const card = document.getElementById('donutCardOverall');
+    const parts = [
+      { name: 'Expenses (this month)', amt: lastMonthExpense, color: OVERALL_COLORS.expense },
+      { name: 'Savings', amt: lastBalances.savings, color: OVERALL_COLORS.savings },
+      { name: 'Stock Exchange', amt: lastBalances.stockExchange, color: OVERALL_COLORS.stock },
+    ].filter(p => p.amt > 0);
+    const total = parts.reduce((sum, p) => sum + p.amt, 0);
+    if (!total) {
+      card.innerHTML = '<div class="empty-note">Tap "Edit" to set your Savings and Stock Exchange totals.</div>';
+      return;
+    }
+    const r = 46, cx = 60, cy = 60, strokeW = 18, circumference = 2 * Math.PI * r;
+    let offset = 0, arcs = '';
+    parts.forEach(p => {
+      const len = (p.amt / total) * circumference;
+      arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.color}" stroke-width="${strokeW}"
+                stroke-dasharray="${len} ${circumference-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
+      offset += len;
+    });
+    const legend = parts.map(p => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${p.color}"></div>
+        <div class="legend-name">${p.name}</div>
+        <div class="legend-amount">${fmt(p.amt)}</div>
+      </div>`).join('');
+    card.innerHTML = `
+      <svg width="120" height="120" viewBox="0 0 120 120">${arcs}</svg>
+      <div class="legend">${legend}</div>`;
+  }
+
+  function openBalancesEdit() {
+    document.getElementById('balSavings').value = lastBalances.savings || '';
+    document.getElementById('balStock').value = lastBalances.stockExchange || '';
+    document.getElementById('balStatusMsg').textContent = '';
+    document.getElementById('balancesOverlay').classList.add('open');
+  }
+  function closeBalancesEdit() { document.getElementById('balancesOverlay').classList.remove('open'); }
+
+  async function saveBalances() {
+    const savings = parseFloat(document.getElementById('balSavings').value) || 0;
+    const stockExchange = parseFloat(document.getElementById('balStock').value) || 0;
+    const btn = document.getElementById('balSubmitBtn');
+    btn.disabled = true;
+    document.getElementById('balStatusMsg').textContent = 'Saving...';
+    try {
+      const res = await apiPost({ action: 'updateBalances', savings, stockExchange });
+      if (res.success) {
+        lastBalances = { savings, stockExchange };
+        balancesCache = lastBalances;
+        renderOverallDonut();
+        document.getElementById('balStatusMsg').textContent = 'Saved.';
+        setTimeout(closeBalancesEdit, 400);
+      } else {
+        document.getElementById('balStatusMsg').textContent = 'Error: ' + res.error;
+      }
+    } catch (err) {
+      document.getElementById('balStatusMsg').textContent = 'Network error.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ---------- Add / edit sheet ---------- */
+  let editingId = null;
+
+  function openSheet(context = 'transaction') {
+    sheetContext = context;
+    editingId = null;
+    document.getElementById('sheetTitle').textContent = context === 'recurring' ? 'Add Recurring' : 'Add Entry';
+    document.getElementById('recurringFields').style.display = context === 'recurring' ? 'block' : 'none';
+    document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('fNextDue').value = new Date().toISOString().slice(0,10);
+    setEntryMode('Expense');
+    document.getElementById('fName').value = '';
+    document.getElementById('fAmount').value = '';
+    document.getElementById('fDescription').value = '';
+    document.getElementById('fIcon').value = '';
+    clearIconImage();
+    document.getElementById('deleteBtn').style.display = 'none';
+    document.getElementById('statusMsg').textContent = '';
+    document.getElementById('sheetOverlay').classList.add('open');
+  }
+
+  function openEditTransaction(id) {
+    const t = lastTransactions.find(x => String(x.id) === String(id));
+    if (!t) return;
+    sheetContext = 'transaction';
+    editingId = id;
+    document.getElementById('sheetTitle').textContent = 'Edit Entry';
+    document.getElementById('recurringFields').style.display = 'none';
+    setEntryMode(t.amount < 0 ? 'Expense' : 'Income');
+    document.getElementById('fName').value = t.name;
+    document.getElementById('fAmount').value = Math.abs(t.amount);
+    document.getElementById('fCategory').value = t.category;
+    document.getElementById('fDate').value = new Date(t.date).toISOString().slice(0,10);
+    document.getElementById('fDescription').value = t.description || '';
+    document.getElementById('deleteBtn').style.display = 'block';
+    document.getElementById('statusMsg').textContent = '';
+    document.getElementById('sheetOverlay').classList.add('open');
+  }
+
+  function closeSheet() { document.getElementById('sheetOverlay').classList.remove('open'); }
+
+  function setEntryMode(mode) {
+    entryMode = mode;
+    document.getElementById('modeExpense').classList.toggle('active', mode === 'Expense');
+    document.getElementById('modeIncome').classList.toggle('active', mode === 'Income');
+    const cats = mode === 'Expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+    const sel = document.getElementById('fCategory');
+    sel.innerHTML = cats.map(c => `<option>${c}</option>`).join('');
+  }
+
+  async function submitEntry() {
+    const name = document.getElementById('fName').value.trim();
+    const rawAmount = parseFloat(document.getElementById('fAmount').value);
+    if (!name || isNaN(rawAmount) || rawAmount === 0) {
+      document.getElementById('statusMsg').textContent = 'Enter a name and a non-zero amount.';
+      return;
+    }
+    const amount = entryMode === 'Expense' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+    const category = document.getElementById('fCategory').value;
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    document.getElementById('statusMsg').textContent = 'Saving...';
+
+    try {
+      let payload;
+      if (editingId) {
+        payload = {
+          action: 'updateTransaction', id: editingId, name, amount, category,
+          date: document.getElementById('fDate').value,
+          description: document.getElementById('fDescription').value,
+          type: entryMode
+        };
+      } else if (sheetContext === 'recurring') {
+        payload = {
+          action: 'addRecurring', name, amount, category,
+          frequency: document.getElementById('fFrequency').value,
+          nextDueDate: document.getElementById('fNextDue').value,
+          type: entryMode,
+          icon: uploadedIconDataUrl || document.getElementById('fIcon').value.trim()
+        };
+      } else {
+        payload = {
+          action: 'addTransaction', name, amount, category,
+          date: document.getElementById('fDate').value,
+          description: document.getElementById('fDescription').value,
+          type: entryMode
+        };
+      }
+      const res = await apiPost(payload);
+      if (res.success) {
+        document.getElementById('statusMsg').textContent = 'Saved.';
+        setTimeout(() => { closeSheet(); invalidateAndReload(); }, 400);
+      } else {
+        document.getElementById('statusMsg').textContent = 'Error: ' + res.error;
+      }
+    } catch (err) {
+      document.getElementById('statusMsg').textContent = 'Network error — check your BACKEND_URL.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteEntry() {
+    if (!editingId) return;
+    if (!confirm('Delete this transaction? This can\'t be undone.')) return;
+    const btn = document.getElementById('deleteBtn');
+    btn.disabled = true;
+    document.getElementById('statusMsg').textContent = 'Deleting...';
+    try {
+      const res = await apiPost({ action: 'deleteTransaction', id: editingId });
+      if (res.success) {
+        setTimeout(() => { closeSheet(); invalidateAndReload(); }, 200);
+      } else {
+        document.getElementById('statusMsg').textContent = 'Error: ' + res.error;
+      }
+    } catch (err) {
+      document.getElementById('statusMsg').textContent = 'Network error — check your BACKEND_URL.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Long-press-free simple way to add a recurring item: tapping "+" while on Recurring tab adds a recurring entry
+  document.querySelector('.fab').addEventListener('click', () => {
+    openSheet(currentTab === 'recurring' ? 'recurring' : 'transaction');
+  });
+
+  // Swipe gesture between the two distribution charts
+  (function setupDistSwipe() {
+    const track = document.getElementById('distTrack');
+    let startX = 0, dragging = false;
+    track.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; dragging = true; }, {passive:true});
+    track.addEventListener('touchend', (e) => {
+      if (!dragging) return;
+      dragging = false;
+      const delta = e.changedTouches[0].clientX - startX;
+      if (Math.abs(delta) < 40) return;
+      if (delta < 0 && currentDist === 0) showDist(1);
+      if (delta > 0 && currentDist === 1) showDist(0);
+    }, {passive:true});
+  })();
+
+  loadAll();
+</script>
+
+
+</body></html>
