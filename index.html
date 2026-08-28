@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_12.html -->
+<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_14.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F2EAE2">
 <title>Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
@@ -15,18 +16,19 @@
      CONFIG — paste your Apps Script Web App URL here
      ==================================================== */
   :root {
-    /* ---- Color tokens (ledger / accounting-paper palette) ---- */
-    --paper: #F4F6F1;
-    --paper-stripe: #E7EEE2;
-    --ink: #1F2A24;
-    --ink-soft: #5B6660;
-    --line: #D6DDD0;
-    --income: #2F6B4F;
-    --expense: #A23B2E;
-    --gold: #C99A3B;
-    --card: #FFFFFF;
-    --expense-tint: rgba(162, 59, 46, 0.07);
-    --income-tint: rgba(47, 107, 79, 0.07);
+    /* ---- Color tokens (cream + terracotta + charcoal, inspired by the reference image) ---- */
+    --paper: #F2EAE2;        /* warm cream — main background */
+    --ink: #2B2B2C;          /* near-black charcoal — primary text & the dark "hero" card */
+    --ink-soft: #9C9086;     /* warm grey — secondary text/labels */
+    --line: rgba(43, 43, 44, 0.06);
+    --income: #4A8B5C;       /* green */
+    --expense: #C1502E;      /* terracotta — doubles as the app's single accent color, like the reference */
+    --gold: #C1502E;         /* same terracotta — one accent color used consistently, not a separate hue */
+    --card: #FFFFFF;         /* white cards, elevated with shadow rather than borders */
+    --expense-tint: rgba(193, 80, 46, 0.09);
+    --income-tint: rgba(74, 139, 92, 0.09);
+    --shadow: 0 4px 18px rgba(43, 43, 44, 0.08);
+    --shadow-lg: 0 8px 24px rgba(43, 43, 44, 0.14);
 
     /* ---- Type tokens ---- */
     --font-display: 'Bodoni Moda', serif;   /* money figures */
@@ -67,26 +69,17 @@
     align-items: center;
     justify-content: space-between;
   }
-  .month-nav {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
+  .month-pills {
+    display: flex; gap: 8px; overflow-x: auto; flex: 1; padding: 2px 2px;
+    scrollbar-width: none; -ms-overflow-style: none;
   }
-  .month-nav button {
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: var(--ink);
-    cursor: pointer;
-    padding: 4px 8px;
-    line-height: 1;
+  .month-pills::-webkit-scrollbar { display: none; }
+  .month-pill {
+    flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--ink-soft); background: var(--card); border: none; box-shadow: var(--shadow); cursor: pointer;
   }
-  .month-label { min-width: 130px; text-align: center; color: var(--ink); font-weight: 500; }
+  .month-pill.active { background: var(--ink); color: var(--paper); box-shadow: var(--shadow-lg); }
   .icon-btn {
     width: 30px; height: 30px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
@@ -103,60 +96,52 @@
   @keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
 
   /* ---------- Balance hero ---------- */
-  .balance-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 24px 22px;
-    margin: 12px 0 18px;
+  .balance-hero {
     position: relative;
     overflow: hidden;
+    padding: 24px 22px 26px;
+    margin: 12px 0 20px;
+    border-radius: 24px;
+    background: var(--ink);
+    color: #fff;
+    box-shadow: var(--shadow-lg);
   }
-  .balance-card::before {
+  .balance-hero::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 27px,
-      var(--paper-stripe) 27px,
-      var(--paper-stripe) 54px
-    );
-    opacity: .5;
+    background:
+      radial-gradient(circle at 88% -15%, rgba(193,80,46,0.45), transparent 55%),
+      radial-gradient(circle at -10% 115%, rgba(74,139,92,0.25), transparent 50%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 9px);
     pointer-events: none;
   }
+  .hero-content { position: relative; z-index: 1; }
   .balance-eyebrow {
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-soft);
-    position: relative;
+    color: rgba(255,255,255,0.7);
   }
   .balance-figure {
     font-family: var(--font-display);
-    font-size: 44px;
+    font-size: 46px;
     font-weight: 500;
     margin: 6px 0 16px;
-    position: relative;
     font-variant-numeric: tabular-nums;
+    color: #fff !important;
   }
-  .balance-figure.pos { color: var(--income); }
-  .balance-figure.neg { color: var(--expense); }
 
-  .chip-row { display: flex; gap: 10px; position: relative; }
-  .chip {
-    flex: 1;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-  }
-  .chip .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
-  .chip .value { font-family: var(--font-display); font-size: 19px; margin-top: 2px; font-variant-numeric: tabular-nums; }
-  .chip.income .value { color: var(--income); }
-  .chip.expense .value { color: var(--expense); }
+  .split-bar { display: flex; height: 8px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.3); margin-bottom: 12px; }
+  .split-bar > div { transition: width .3s ease; }
+  .split-bar-income { background: var(--income); }
+  .split-bar-expense { background: var(--expense); }
+  .split-labels { display: flex; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.8); }
+  .split-labels b { color: #fff; font-family: var(--font-display); font-size: 16px; font-weight: 500; margin-left: 5px; }
+  .dot-sq { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .dot-sq.income { background: var(--income); }
+  .dot-sq.expense { background: var(--expense); }
 
   /* ---------- Section headers ---------- */
   .section-title {
@@ -193,24 +178,31 @@
   }
   .dist-slide-label a { color: var(--gold); text-decoration: none; }
 
-  /* ---------- Donut ---------- */
+  /* ---------- Distribution (horizontal bars, not donuts) ---------- */
   .donut-card {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    min-height: 130px;
+    border-radius: 20px;
+    padding: 18px 20px;
+    min-height: 100px;
+    box-shadow: var(--shadow);
   }
-  .donut-card svg { flex-shrink: 0; }
-  .legend { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
+  .bar-row + .bar-row { margin-top: 13px; }
+  .bar-row-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .bar-row-name { font-size: 13px; color: var(--ink); }
+  .bar-row-amt { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft); }
+  .bar-track { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .3s ease; }
+  .stacked-bar { display: flex; height: 10px; border-radius: 6px; overflow: hidden; }
+  .stacked-bar > div { transition: width .3s ease; }
+  .legend { display: flex; flex-direction: column; gap: 7px; }
   .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
-  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
   .legend-name { flex: 1; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .legend-amount { font-family: var(--font-mono); color: var(--ink-soft); font-size: 11.5px; }
   .empty-note { color: var(--ink-soft); font-size: 13px; padding: 6px 2px; }
+  .empty-state { text-align: center; padding: 22px 10px; }
+  .empty-state-icon { font-size: 26px; margin-bottom: 8px; opacity: .55; }
+  .empty-state-text { color: var(--ink-soft); font-size: 13px; }
 
   /* ---------- Stamp pill (category tag) ---------- */
   .stamp {
@@ -226,26 +218,31 @@
   }
 
   /* ---------- List rows (transactions / recurring) ---------- */
+  .list-card {
+    background: var(--card);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
   .row-card {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 13px 15px;
+    border-left: 3px solid transparent;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 8px;
   }
-  .row-left { display: flex; align-items: center; gap: 11px; min-width: 0; }
-  .row-card.expense { background: var(--expense-tint); }
-  .row-card.income { background: var(--income-tint); }
+  .list-card .row-card:last-child { border-bottom: none; }
+  .row-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .row-card.expense { border-left-color: var(--expense); }
+  .row-card.income { border-left-color: var(--income); }
   .row-icon {
-    width: 34px; height: 34px; border-radius: 10px;
+    width: 34px; height: 34px; border-radius: 12px;
     background: var(--paper);
-    border: 1px solid var(--line);
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
+    font-size: 15px; flex-shrink: 0;
   }
   .row-main { min-width: 0; }
   .row-name { font-size: 14.5px; font-weight: 500; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -259,17 +256,22 @@
 
   /* ---------- Bottom nav ---------- */
   nav.tabbar {
-    position: sticky;
-    bottom: 0;
+    position: fixed;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 448px;
     background: var(--card);
-    border-top: 1px solid var(--line);
+    border-radius: 28px;
+    box-shadow: var(--shadow-lg);
     display: flex;
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
-    max-width: 480px;
-    margin: 0 auto;
-    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 8px;
+    z-index: 30;
   }
-  nav.tabbar button {
+  nav.tabbar .tab-btn {
     flex: 1;
     background: none;
     border: none;
@@ -283,21 +285,29 @@
     color: var(--ink-soft);
     cursor: pointer;
   }
-  nav.tabbar button.active { color: var(--ink); }
-  nav.tabbar button .icon { font-size: 19px; line-height: 1; }
-  nav.tabbar button.fab .icon {
-    background: var(--ink);
-    color: var(--paper);
-    width: 34px; height: 34px;
-    border-radius: 50%;
+  nav.tabbar .tab-btn.active { color: var(--ink); }
+  nav.tabbar .tab-btn .icon {
+    font-size: 17px; line-height: 1;
+    width: 32px; height: 32px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    transition: background .15s ease, color .15s ease;
+  }
+  nav.tabbar .tab-btn.active .icon { background: var(--gold); color: #fff; }
+  .fab-float {
+    position: absolute;
+    top: -24px; left: 50%; transform: translateX(-50%);
+    width: 54px; height: 54px; border-radius: 50%;
+    background: var(--gold); color: #fff; border: none;
+    font-size: 26px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
   }
 
   /* ---------- Modal / sheet ---------- */
   .sheet-overlay {
     position: fixed; inset: 0;
-    background: rgba(31,42,36,0.35);
+    background: rgba(43,43,44,0.45);
     display: none;
     align-items: flex-end;
     justify-content: center;
@@ -358,11 +368,7 @@
 
   <header class="top">
     <button class="icon-btn" id="backBtn" onclick="goBack()">‹</button>
-    <div class="month-nav">
-      <button onclick="shiftMonth(-1)">‹</button>
-      <span class="month-label" id="monthLabel">August 2026</span>
-      <button onclick="shiftMonth(1)">›</button>
-    </div>
+    <div class="month-pills" id="monthPills"><button class="month-pill">Jun</button><button class="month-pill">Jul</button><button class="month-pill active">Aug</button><button class="month-pill">Sep</button><button class="month-pill">Oct</button></div>
     <button class="icon-btn always" onclick="loadAll()" title="Refresh">⟳</button>
   </header>
 
@@ -370,12 +376,15 @@
 
     <!-- HOME VIEW -->
     <section class="view active" id="view-home">
-      <div class="balance-card" onclick="navigateTo(&#39;transactions&#39;)" style="cursor:pointer;">
-        <div class="balance-eyebrow">Monthly Balance</div>
-        <div class="balance-figure" id="balanceFigure">₪0</div>
-        <div class="chip-row">
-          <div class="chip income"><div class="label">Income</div><div class="value" id="incomeVal">₪0</div></div>
-          <div class="chip expense"><div class="label">Expense</div><div class="value" id="expenseVal">₪0</div></div>
+      <div class="balance-hero" onclick="navigateTo(&#39;transactions&#39;)" style="cursor:pointer;">
+        <div class="hero-content">
+          <div class="balance-eyebrow">Monthly Balance</div>
+          <div class="balance-figure" id="balanceFigure">₪0</div>
+          <div class="split-bar"><div class="split-bar-income" id="splitIncome" style="width:50%"></div><div class="split-bar-expense" id="splitExpense" style="width:50%"></div></div>
+          <div class="split-labels">
+            <span><span class="dot-sq income"></span>Income <b id="incomeVal">₪0</b></span>
+            <span><span class="dot-sq expense"></span>Expense <b id="expenseVal">₪0</b></span>
+          </div>
         </div>
       </div>
 
@@ -391,7 +400,7 @@
           <div class="dist-slide">
             <div class="dist-slide-label">By Category</div>
             <div class="donut-card" id="donutCard">
-              <div class="empty-note">No expenses yet this month.</div>
+              <div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">No expenses yet this month.</div></div>
             </div>
           </div>
           <div class="dist-slide">
@@ -404,28 +413,90 @@
         </div>
       </div>
 
-      <div class="section-title">Upcoming <a onclick="navigateTo(&#39;recurring&#39;)">See all</a></div>
-      <div id="upcomingPreview"><div class="empty-note">Nothing recurring added yet.</div></div>
+      <div class="section-title">
+        Activity
+        <span class="dist-dots">
+          <span class="dot active" id="feedDot0" onclick="showFeed(0)"></span>
+          <span class="dot" id="feedDot1" onclick="showFeed(1)"></span>
+        </span>
+      </div>
+      <div class="dist-viewport" id="feedViewport">
+        <div class="dist-track" id="feedTrack">
+          <div class="dist-slide">
+            <div class="dist-slide-label">Recent Transactions <a onclick="navigateTo(&#39;transactions&#39;)">See all</a></div>
+            <div id="recentPreview"><div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-text">No transactions yet.</div></div></div>
+          </div>
+          <div class="dist-slide">
+            <div class="dist-slide-label">Upcoming <a onclick="navigateTo(&#39;recurring&#39;)">See all</a></div>
+            <div id="upcomingPreview"><div class="list-card"><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon" style="background:rgba(193,80,46,0.15)">🔁</div>
+          <div class="row-main">
+            <div class="row-name">Partner</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#C1502E">Subscriptions</span>
+              <span class="row-date">Monthly · due 02 Aug</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount neg">-₪40</div>
+      </div><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
+          <div class="row-main">
+            <div class="row-name">משכורת</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#4A8B5C">Salary</span>
+              <span class="row-date">Monthly · due 01 Sept</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount pos">₪8,000</div>
+      </div></div></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- TRANSACTIONS VIEW -->
     <section class="view" id="view-transactions">
       <div class="section-title">This Month's Transactions</div>
-      <div id="txList"><div class="empty-note">No transactions yet.</div></div>
+      <div id="txList"><div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-text">No transactions yet.</div></div></div>
     </section>
 
     <!-- RECURRING VIEW -->
     <section class="view" id="view-recurring">
       <div class="section-title">Recurring Income / Expenses</div>
-      <div id="recurringList"><div class="empty-note">Nothing added yet.</div></div>
+      <div id="recurringList"><div class="list-card"><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon" style="background:rgba(193,80,46,0.15)">🔁</div>
+          <div class="row-main">
+            <div class="row-name">Partner</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#C1502E">Subscriptions</span>
+              <span class="row-date">Monthly · due 02 Aug</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount neg">-₪40</div>
+      </div><div class="row-card">
+        <div class="row-left">
+          <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
+          <div class="row-main">
+            <div class="row-name">משכורת</div>
+            <div class="row-meta">
+              <span class="stamp" style="color:#4A8B5C">Salary</span>
+              <span class="row-date">Monthly · due 01 Sept</span>
+            </div>
+          </div>
+        </div>
+        <div class="row-amount pos">₪8,000</div>
+      </div></div></div>
     </section>
 
   </main>
 
   <nav class="tabbar">
-    <button class="fab" onclick="openSheet(currentTab === &#39;recurring&#39; ? &#39;recurring&#39; : &#39;transaction&#39;)">
-      <span class="icon">+</span>
-    </button>
     <button class="tab-btn active" data-tab="home" onclick="switchTab(&#39;home&#39;)">
       <span class="icon">⌂</span>Home
     </button>
@@ -435,6 +506,7 @@
     <button class="tab-btn" data-tab="recurring" onclick="switchTab(&#39;recurring&#39;)">
       <span class="icon">↻</span>Recurring
     </button>
+    <button class="fab-float" onclick="openSheet(currentTab === &#39;recurring&#39; ? &#39;recurring&#39; : &#39;transaction&#39;)">+</button>
   </nav>
 </div>
 
@@ -532,12 +604,17 @@
   const INCOME_CATEGORIES = ['Salary','Gift','Refund','Freelance','Other'];
 
   const CATEGORY_COLORS = {
-    'Subscriptions':'#3B5B6B', 'Eating Out':'#A23B2E', 'Army':'#5B7B3F',
-    'Lifestyle & Health':'#8C4B6B', 'Events/Attractions':'#C99A3B', 'Groceries':'#2F6B4F',
-    'Transportation':'#3F4F6B', 'Housing & Bills':'#7A5C3E', 'Friends/Social':'#B0793B',
-    'Shopping':'#4F6B5B', 'Other':'#6B4F3B',
-    'Salary':'#2F6B4F', 'Gift':'#C99A3B', 'Refund':'#3B5B6B', 'Freelance':'#8C4B6B'
+    'Subscriptions':'#C1502E', 'Eating Out':'#E0916A', 'Army':'#4A8B5C',
+    'Lifestyle & Health':'#7DB68C', 'Events/Attractions':'#2B2B2C', 'Groceries':'#C7A06B',
+    'Transportation':'#8C6B4A', 'Housing & Bills':'#5C4A3A', 'Friends/Social':'#E8B084',
+    'Shopping':'#A9673F', 'Other':'#9C9086',
+    'Salary':'#4A8B5C', 'Gift':'#C7A06B', 'Refund':'#7DB68C', 'Freelance':'#C1502E'
   };
+
+  function hexToRgba(hex, alpha) {
+    const n = parseInt(hex.replace('#',''), 16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${alpha})`;
+  }
 
   const CATEGORY_ICONS = {
     'Subscriptions':'🔁', 'Eating Out':'🍽️', 'Army':'🎖️',
@@ -556,7 +633,7 @@
   let lastBalances = { savings: 0, stockExchange: 0 };
   let lastMonthExpense = 0;
 
-  const OVERALL_COLORS = { expense: '#A23B2E', savings: '#4A6FA5', stock: '#C99A3B' };
+  const OVERALL_COLORS = { expense: '#C1502E', savings: '#4A8B5C', stock: '#2B2B2C' };
 
   function monthKey(d) {
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
@@ -574,11 +651,38 @@
     loadAll();
   }
 
+  function renderMonthPills() {
+    const wrap = document.getElementById('monthPills');
+    wrap.innerHTML = '';
+    for (let off = -2; off <= 2; off++) {
+      const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + off, 1);
+      const now = new Date();
+      const showYear = d.getFullYear() !== now.getFullYear();
+      const label = d.toLocaleDateString('en-US', showYear ? { month: 'short', year: '2-digit' } : { month: 'short' });
+      const btn = document.createElement('button');
+      btn.className = 'month-pill' + (off === 0 ? ' active' : '');
+      btn.textContent = label;
+      btn.onclick = () => shiftMonth(off);
+      wrap.appendChild(btn);
+    }
+    // Keep the active pill scrolled into view
+    const active = wrap.querySelector('.active');
+    if (active) active.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+
   function showDist(i) {
     currentDist = i;
     document.getElementById('distTrack').style.transform = `translateX(-${i * 50}%)`;
     document.getElementById('dot0').classList.toggle('active', i === 0);
     document.getElementById('dot1').classList.toggle('active', i === 1);
+  }
+
+  let currentFeed = 0;
+  function showFeed(i) {
+    currentFeed = i;
+    document.getElementById('feedTrack').style.transform = `translateX(-${i * 50}%)`;
+    document.getElementById('feedDot0').classList.toggle('active', i === 0);
+    document.getElementById('feedDot1').classList.toggle('active', i === 1);
   }
 
   let tabHistory = [];
@@ -659,7 +763,7 @@
       document.getElementById('app').innerHTML = '<div class="config-warning">Set BACKEND_URL at the top of the &lt;script&gt; section to your Apps Script Web App URL before this will work.</div>';
       return;
     }
-    document.getElementById('monthLabel').textContent = monthLabel(currentMonth);
+    renderMonthPills();
     const key = monthKey(currentMonth);
 
     // Fast path — render instantly from cache if we already have this month
@@ -707,6 +811,10 @@
     balFig.className = 'balance-figure ' + (s.balance >= 0 ? 'pos' : 'neg');
     document.getElementById('incomeVal').textContent = fmt(s.income);
     document.getElementById('expenseVal').textContent = fmt(s.expense);
+    const splitTotal = s.income + s.expense;
+    const incomePct = splitTotal > 0 ? (s.income / splitTotal * 100) : 50;
+    document.getElementById('splitIncome').style.width = incomePct + '%';
+    document.getElementById('splitExpense').style.width = (100 - incomePct) + '%';
     renderDonut(s.byCategory, s.expense);
   }
 
@@ -714,58 +822,58 @@
     const card = document.getElementById('donutCard');
     const entries = Object.entries(byCategory || {}).sort((a,b) => b[1]-a[1]);
     if (!entries.length || !total) {
-      card.innerHTML = '<div class="empty-note">No expenses yet this month.</div>';
+      card.innerHTML = emptyState('📊', 'No expenses yet this month.');
       return;
     }
-    const r = 46, cx = 60, cy = 60, strokeW = 18, circumference = 2 * Math.PI * r;
-    let offset = 0;
-    let arcs = '';
-    entries.forEach(([cat, amt]) => {
-      const frac = amt / total;
-      const len = frac * circumference;
-      const color = CATEGORY_COLORS[cat] || '#999';
-      arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeW}"
-                stroke-dasharray="${len} ${circumference-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
-      offset += len;
-    });
-    const legend = entries.map(([cat, amt]) => `
-      <div class="legend-item">
-        <div class="legend-dot" style="background:${CATEGORY_COLORS[cat]||'#999'}"></div>
-        <div class="legend-name">${cat}</div>
-        <div class="legend-amount">${fmt(-amt)}</div>
+    const max = entries[0][1];
+    card.innerHTML = entries.map(([cat, amt]) => `
+      <div class="bar-row">
+        <div class="bar-row-top"><span class="bar-row-name">${escapeHtml(cat)}</span><span class="bar-row-amt">${fmt(-amt)}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(amt/max*100).toFixed(1)}%; background:${CATEGORY_COLORS[cat]||'#999'}"></div></div>
       </div>`).join('');
-    card.innerHTML = `
-      <svg width="120" height="120" viewBox="0 0 120 120">${arcs}</svg>
-      <div class="legend">${legend}</div>`;
   }
 
   let lastTransactions = [];
 
+  function transactionRowHtml(t) {
+    const isPos = t.amount >= 0;
+    const color = CATEGORY_COLORS[t.category] || '#999';
+    const d = new Date(t.date);
+    const icon = CATEGORY_ICONS[t.category] || '📎';
+    const clickable = t.id ? `onclick="openEditTransaction('${t.id}')" style="cursor:pointer;"` : '';
+    return `<div class="row-card ${isPos ? 'income' : 'expense'}" ${clickable}>
+      <div class="row-left">
+        <div class="row-icon" style="background:${hexToRgba(color,0.15)}">${renderIcon(icon)}</div>
+        <div class="row-main">
+          <div class="row-name">${escapeHtml(t.name)}</div>
+          <div class="row-meta">
+            <span class="stamp" style="color:${color}">${escapeHtml(t.category)}</span>
+            <span class="row-date">${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+          </div>
+        </div>
+      </div>
+      <div class="row-amount ${isPos?'pos':'neg'}">${fmt(t.amount)}</div>
+    </div>`;
+  }
+
   function renderTransactions(list) {
     lastTransactions = list;
     const el = document.getElementById('txList');
-    if (!list.length) { el.innerHTML = '<div class="empty-note">No transactions yet.</div>'; return; }
+    if (!list.length) {
+      el.innerHTML = emptyState('🧾', 'No transactions yet.');
+      renderRecentPreview();
+      return;
+    }
     list.sort((a,b) => new Date(b.date) - new Date(a.date));
-    el.innerHTML = list.map(t => {
-      const isPos = t.amount >= 0;
-      const color = CATEGORY_COLORS[t.category] || '#999';
-      const d = new Date(t.date);
-      const icon = CATEGORY_ICONS[t.category] || '📎';
-      const clickable = t.id ? `onclick="openEditTransaction('${t.id}')" style="cursor:pointer;"` : '';
-      return `<div class="row-card ${isPos ? 'income' : 'expense'}" ${clickable}>
-        <div class="row-left">
-          <div class="row-icon">${renderIcon(icon)}</div>
-          <div class="row-main">
-            <div class="row-name">${escapeHtml(t.name)}</div>
-            <div class="row-meta">
-              <span class="stamp" style="color:${color}">${escapeHtml(t.category)}</span>
-              <span class="row-date">${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
-            </div>
-          </div>
-        </div>
-        <div class="row-amount ${isPos?'pos':'neg'}">${fmt(t.amount)}</div>
-      </div>`;
-    }).join('');
+    el.innerHTML = '<div class="list-card">' + list.map(transactionRowHtml).join('') + '</div>';
+    renderRecentPreview();
+  }
+
+  function renderRecentPreview() {
+    const el = document.getElementById('recentPreview');
+    if (!lastTransactions.length) { el.innerHTML = emptyState('🧾', 'No transactions yet.'); return; }
+    const top = lastTransactions.slice(0, 5); // already sorted newest-first by renderTransactions
+    el.innerHTML = '<div class="list-card">' + top.map(transactionRowHtml).join('') + '</div>';
   }
 
   function renderRecurring(list) {
@@ -773,8 +881,8 @@
     const full = document.getElementById('recurringList');
     const preview = document.getElementById('upcomingPreview');
     if (!list.length) {
-      full.innerHTML = '<div class="empty-note">Nothing added yet.</div>';
-      preview.innerHTML = '<div class="empty-note">Nothing recurring added yet.</div>';
+      full.innerHTML = emptyState('🔁', 'Nothing added yet.');
+      preview.innerHTML = emptyState('🔁', 'Nothing recurring added yet.');
       return;
     }
     const rowHtml = (r) => {
@@ -784,7 +892,7 @@
       const icon = (r.icon && r.icon.trim()) ? r.icon : (CATEGORY_ICONS[r.category] || '📎');
       return `<div class="row-card">
         <div class="row-left">
-          <div class="row-icon">${renderIcon(icon)}</div>
+          <div class="row-icon" style="background:${hexToRgba(color,0.15)}">${renderIcon(icon)}</div>
           <div class="row-main">
             <div class="row-name">${escapeHtml(r.name)}</div>
             <div class="row-meta">
@@ -796,8 +904,8 @@
         <div class="row-amount ${isPos?'pos':'neg'}">${fmt(r.amount)}</div>
       </div>`;
     };
-    full.innerHTML = sorted.map(rowHtml).join('');
-    preview.innerHTML = sorted.slice(0,3).map(rowHtml).join('');
+    full.innerHTML = '<div class="list-card">' + sorted.map(rowHtml).join('') + '</div>';
+    preview.innerHTML = '<div class="list-card">' + sorted.slice(0,3).map(rowHtml).join('') + '</div>';
   }
 
   function handleIconImage(event) {
@@ -838,6 +946,10 @@
     }
     return iconValue || '📎';
   }
+  function emptyState(icon, text) {
+    return `<div class="empty-state"><div class="empty-state-icon">${icon}</div><div class="empty-state-text">${text}</div></div>`;
+  }
+
   function escapeHtml(str) {
     const d = document.createElement('div');
     d.textContent = str ?? '';
@@ -853,17 +965,10 @@
     ].filter(p => p.amt > 0);
     const total = parts.reduce((sum, p) => sum + p.amt, 0);
     if (!total) {
-      card.innerHTML = '<div class="empty-note">Tap "Edit" to set your Savings and Stock Exchange totals.</div>';
+      card.innerHTML = emptyState('🥧', 'Tap "Edit" to set your Savings and Stock Exchange totals.');
       return;
     }
-    const r = 46, cx = 60, cy = 60, strokeW = 18, circumference = 2 * Math.PI * r;
-    let offset = 0, arcs = '';
-    parts.forEach(p => {
-      const len = (p.amt / total) * circumference;
-      arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.color}" stroke-width="${strokeW}"
-                stroke-dasharray="${len} ${circumference-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
-      offset += len;
-    });
+    const bar = parts.map(p => `<div style="width:${(p.amt/total*100).toFixed(1)}%; background:${p.color};"></div>`).join('');
     const legend = parts.map(p => `
       <div class="legend-item">
         <div class="legend-dot" style="background:${p.color}"></div>
@@ -871,8 +976,8 @@
         <div class="legend-amount">${fmt(p.amt)}</div>
       </div>`).join('');
     card.innerHTML = `
-      <svg width="120" height="120" viewBox="0 0 120 120">${arcs}</svg>
-      <div class="legend">${legend}</div>`;
+      <div class="stacked-bar">${bar}</div>
+      <div class="legend" style="margin-top:14px;">${legend}</div>`;
   }
 
   function openBalancesEdit() {
@@ -1060,8 +1165,8 @@
   })();
 
   // Swipe gesture between the two distribution charts
-  (function setupDistSwipe() {
-    const track = document.getElementById('distTrack');
+  function setupTrackSwipe(trackId, getCurrent, showFn) {
+    const track = document.getElementById(trackId);
     let startX = 0, startY = 0, dragging = false, horizontal = false;
     track.addEventListener('touchstart', (e) => {
       startX = e.touches[0].clientX;
@@ -1073,7 +1178,7 @@
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
       if (!horizontal && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) horizontal = true;
-      if (horizontal) e.preventDefault(); // stop the page from scrolling sideways while we swipe the chart
+      if (horizontal) e.preventDefault(); // stop the page from scrolling sideways while we swipe the widget
     }, {passive:false});
     track.addEventListener('touchend', (e) => {
       if (!dragging) return;
@@ -1081,8 +1186,40 @@
       if (!horizontal) return;
       const delta = e.changedTouches[0].clientX - startX;
       if (Math.abs(delta) < 40) return;
-      if (delta < 0 && currentDist === 0) showDist(1);
-      if (delta > 0 && currentDist === 1) showDist(0);
+      if (delta < 0 && getCurrent() === 0) showFn(1);
+      if (delta > 0 && getCurrent() === 1) showFn(0);
+    }, {passive:true});
+  }
+  setupTrackSwipe('distTrack', () => currentDist, showDist);
+  setupTrackSwipe('feedTrack', () => currentFeed, showFeed);
+
+  // Swipe left/right anywhere in the main content to move between Home / Transactions / Recurring
+  (function setupTabSwipe() {
+    const TAB_ORDER = ['home', 'transactions', 'recurring'];
+    const main = document.querySelector('main');
+    let startX = 0, startY = 0, tracking = false, horizontal = false;
+    main.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      // Leave room for the edge-back gesture, and don't hijack the two inner swipers (distribution/activity)
+      if (t.clientX < 24 || e.target.closest('.dist-viewport')) { tracking = false; return; }
+      startX = t.clientX; startY = t.clientY; tracking = true; horizontal = false;
+    }, {passive:true});
+    main.addEventListener('touchmove', (e) => {
+      if (!tracking) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (!horizontal && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) horizontal = true;
+      if (horizontal) e.preventDefault();
+    }, {passive:false});
+    main.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      if (!horizontal) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) < 50) return;
+      const idx = TAB_ORDER.indexOf(currentTab);
+      const nextIdx = idx + (dx < 0 ? 1 : -1);
+      if (nextIdx >= 0 && nextIdx < TAB_ORDER.length) switchTab(TAB_ORDER[nextIdx]);
     }, {passive:true});
   })();
 
