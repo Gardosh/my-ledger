@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_17.html -->
+<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_19.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#F2EAE2">
+<meta name="theme-color" content="#121214">
 <title>Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
@@ -16,24 +16,24 @@
      CONFIG — paste your Apps Script Web App URL here
      ==================================================== */
   :root {
-    /* ---- Color tokens (cream + terracotta + charcoal, inspired by the reference image) ---- */
-    --paper: #F2EAE2;        /* warm cream — main background */
-    --ink: #2B2B2C;          /* near-black charcoal — primary text & the dark "hero" card */
-    --ink-soft: #9C9086;     /* warm grey — secondary text/labels */
-    --line: rgba(43, 43, 44, 0.06);
-    --income: #4A8B5C;       /* green */
-    --expense: #C1502E;      /* terracotta — doubles as the app's single accent color, like the reference */
-    --gold: #C1502E;         /* same terracotta — one accent color used consistently, not a separate hue */
-    --card: #FFFFFF;         /* white cards, elevated with shadow rather than borders */
-    --expense-tint: rgba(193, 80, 46, 0.09);
-    --income-tint: rgba(74, 139, 92, 0.09);
-    --shadow: 0 4px 18px rgba(43, 43, 44, 0.08);
-    --shadow-lg: 0 8px 24px rgba(43, 43, 44, 0.14);
+    /* ---- Color tokens (true black + Apple system colors, iOS dark mode style) ---- */
+    --paper: #121214;        /* soft near-black — less harsh than pure OLED black */
+    --ink: #FFFFFF;          /* white — primary text & money figures */
+    --ink-soft: #8E8E93;     /* iOS systemGray */
+    --line: #313134;         /* separator */
+    --income: #30D158;       /* iOS systemGreen (dark) */
+    --expense: #FF453A;      /* iOS systemRed (dark) */
+    --gold: #64D2FF;         /* iOS systemTeal/cyan — accents, focus, nav, glow */
+    --card: #1E1E21;         /* elevated dark surface */
+    --expense-tint: rgba(255, 69, 58, 0.12);
+    --income-tint: rgba(48, 209, 88, 0.12);
+    --shadow: none;
+    --shadow-lg: 0 8px 28px rgba(0,0,0,0.5);
 
     /* ---- Type tokens ---- */
-    --font-display: 'Bodoni Moda', serif;   /* money figures */
-    --font-body: 'IBM Plex Sans', sans-serif; /* UI text */
-    --font-mono: 'IBM Plex Mono', monospace;  /* labels, dates, stamps */
+    --font-display: 'Newsreader', serif;   /* money figures — elegant serif */
+    --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; /* renders as real SF Pro on iPhone */
+    --font-mono: ui-monospace, 'SF Mono', 'Menlo', monospace;  /* labels, dates, stamps */
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -99,10 +99,10 @@
   .balance-hero {
     position: relative;
     overflow: hidden;
-    padding: 24px 22px 26px;
+    padding: 26px 22px 28px;
     margin: 12px 0 20px;
     border-radius: 24px;
-    background: var(--ink);
+    background: var(--card);
     color: #fff;
     box-shadow: var(--shadow-lg);
   }
@@ -110,10 +110,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(circle at 88% -15%, rgba(193,80,46,0.45), transparent 55%),
-      radial-gradient(circle at -10% 115%, rgba(74,139,92,0.25), transparent 50%),
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 9px);
+    background: radial-gradient(circle at 50% 0%, rgba(100,210,255,0.22), transparent 60%);
     pointer-events: none;
   }
   .hero-content { position: relative; z-index: 1; }
@@ -122,7 +119,7 @@
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255,255,255,0.55);
   }
   .balance-figure {
     font-family: var(--font-display);
@@ -131,13 +128,14 @@
     margin: 6px 0 16px;
     font-variant-numeric: tabular-nums;
     color: #fff !important;
+    text-shadow: 0 0 26px rgba(100,210,255,0.45);
   }
 
-  .split-bar { display: flex; height: 8px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.3); margin-bottom: 12px; }
+  .split-bar { display: flex; height: 8px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.12); margin-bottom: 12px; }
   .split-bar > div { transition: width .3s ease; }
   .split-bar-income { background: var(--income); }
   .split-bar-expense { background: var(--expense); }
-  .split-labels { display: flex; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.8); }
+  .split-labels { display: flex; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.6); }
   .split-labels b { color: #fff; font-family: var(--font-display); font-size: 16px; font-weight: 500; margin-left: 5px; }
   .dot-sq { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
   .dot-sq.income { background: var(--income); }
@@ -163,7 +161,7 @@
   }
   .dist-dots .dot.active { background: var(--gold); }
 
-  .dist-viewport { overflow-x: hidden; overflow-y: visible; width: 100%; border-radius: 18px; }
+  .dist-viewport { overflow-x: hidden; overflow-y: visible; width: 100%; }
   .dist-track {
     display: flex;
     width: 200%;
@@ -174,7 +172,7 @@
   .dist-slide:last-child { padding-left: 8px; }
   .dist-slide-label {
     font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--ink-soft); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+    color: var(--ink-soft); margin-bottom: 8px; padding: 0 3px; display: flex; justify-content: space-between; align-items: center;
   }
   .dist-slide-label span.dsl-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dist-slide-label a { color: var(--gold); text-decoration: none; flex-shrink: 0; margin-left: 8px; }
@@ -258,12 +256,15 @@
   /* ---------- Bottom nav ---------- */
   nav.tabbar {
     position: fixed;
-    bottom: calc(14px + env(safe-area-inset-bottom));
+    bottom: env(safe-area-inset-bottom);
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 32px);
     max-width: 448px;
-    background: var(--card);
+    background: rgba(28,28,30,0.78);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 28px;
     box-shadow: var(--shadow-lg);
     display: flex;
@@ -296,7 +297,7 @@
   nav.tabbar .tab-btn.active .icon { background: var(--gold); color: #fff; }
   .fab-float {
     position: absolute;
-    top: -24px; left: 50%; transform: translateX(-50%);
+    top: -42px; left: 50%; transform: translateX(-50%);
     width: 54px; height: 54px; border-radius: 50%;
     background: var(--gold); color: #fff; border: none;
     font-size: 26px; line-height: 1;
@@ -336,17 +337,24 @@
   .toggle-row button.active.expense { background: var(--expense); color: #fff; }
   .toggle-row button.active.income { background: var(--income); color: #fff; }
 
+  .hero-input {
+    width: 100%; border: none; background: none; outline: none;
+    font-family: var(--font-display); font-size: 26px; color: var(--ink);
+    padding: 4px 0 14px; margin-bottom: 6px; border-bottom: 1px solid var(--line);
+  }
+  .hero-input::placeholder { color: var(--ink-soft); opacity: .6; }
+
   .field { margin-bottom: 14px; }
   .field label {
     display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em;
     text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px;
   }
   .field input, .field select, .field textarea {
-    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px;
-    font-family: var(--font-body); font-size: 15px; color: var(--ink); background: var(--paper);
+    width: 100%; border: none; border-bottom: 1px solid var(--line); border-radius: 0; padding: 9px 2px;
+    font-family: var(--font-body); font-size: 15px; color: var(--ink); background: none;
   }
-  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
-  .amount-input { font-family: var(--font-display); font-size: 22px !important; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-bottom-color: var(--gold); }
+  .amount-input { font-family: var(--font-display); font-size: 24px !important; }
 
   .submit-btn {
     width: 100%; padding: 14px; border: none; border-radius: 12px;
@@ -357,6 +365,17 @@
   .close-x { position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; color: var(--ink-soft); cursor: pointer; }
 
   .status-msg { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; min-height: 16px; }
+  .success-check {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; margin: 4px auto 0; border-radius: 50%;
+    background: var(--income); color: #fff; font-size: 20px;
+    animation: successPop .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes successPop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); }
+  }
 
   .config-warning {
     margin: 40px 20px; padding: 16px; border: 1px dashed var(--expense); border-radius: 12px;
@@ -380,11 +399,11 @@
       <div class="balance-hero" onclick="navigateTo(&#39;transactions&#39;)" style="cursor:pointer;">
         <div class="hero-content">
           <div class="balance-eyebrow">Monthly Balance</div>
-          <div class="balance-figure pos" id="balanceFigure">₪8,220</div>
-          <div class="split-bar"><div class="split-bar-income" id="splitIncome" style="width: 96.2838%;"></div><div class="split-bar-expense" id="splitExpense" style="width: 3.71622%;"></div></div>
+          <div class="balance-figure" id="balanceFigure">₪0</div>
+          <div class="split-bar"><div class="split-bar-income" id="splitIncome" style="width:50%"></div><div class="split-bar-expense" id="splitExpense" style="width:50%"></div></div>
           <div class="split-labels">
-            <span><span class="dot-sq income"></span>Income <b id="incomeVal">₪8,550</b></span>
-            <span><span class="dot-sq expense"></span>Expense <b id="expenseVal">₪330</b></span>
+            <span><span class="dot-sq income"></span>Income <b id="incomeVal">₪0</b></span>
+            <span><span class="dot-sq expense"></span>Expense <b id="expenseVal">₪0</b></span>
           </div>
         </div>
       </div>
@@ -401,26 +420,8 @@
           <div class="dist-slide">
             <div class="dist-slide-label"><span class="dsl-text">By Category</span></div>
             <div class="donut-card" id="donutCard">
-      <div class="bar-row">
-        <div class="bar-row-top"><span class="bar-row-name">Events/Attractions</span><span class="bar-row-amt">-₪100</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:100.0%; background:#2B2B2C"></div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-row-top"><span class="bar-row-name">Housing &amp; Bills</span><span class="bar-row-amt">-₪90</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:90.0%; background:#5C4A3A"></div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-row-top"><span class="bar-row-name">Lifestyle &amp; Health</span><span class="bar-row-amt">-₪50</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:50.0%; background:#7DB68C"></div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-row-top"><span class="bar-row-name">Subscriptions</span><span class="bar-row-amt">-₪50</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:50.0%; background:#C1502E"></div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-row-top"><span class="bar-row-name">Groceries</span><span class="bar-row-amt">-₪40</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:40.0%; background:#C7A06B"></div></div>
-      </div></div>
+              <div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">No expenses yet this month.</div></div>
+            </div>
           </div>
           <div class="dist-slide">
             <div class="dist-slide-label">
@@ -443,95 +444,11 @@
         <div class="dist-track" id="feedTrack">
           <div class="dist-slide">
             <div class="dist-slide-label"><span class="dsl-text">Recent Transactions</span> <a onclick="navigateTo(&#39;transactions&#39;)">See all</a></div>
-            <div id="recentPreview"><div class="list-card"><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(125,182,140,0.15)">💊</div>
-        <div class="row-main">
-          <div class="row-name">Gum</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#7DB68C">Lifestyle &amp; Health</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪50</div>
-    </div><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(43,43,44,0.15)">🎟️</div>
-        <div class="row-main">
-          <div class="row-name">Money</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#2B2B2C">Events/Attractions</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪100</div>
-    </div><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(199,160,107,0.15)">🛒</div>
-        <div class="row-main">
-          <div class="row-name">Shekem</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#C7A06B">Groceries</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪40</div>
-    </div><div class="row-card income">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
-        <div class="row-main">
-          <div class="row-name">Salary</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#4A8B5C">Salary</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount pos">₪8,000</div>
-    </div><div class="row-card income">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(125,182,140,0.15)">↩️</div>
-        <div class="row-main">
-          <div class="row-name">Money</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#7DB68C">Refund</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount pos">₪50</div>
-    </div></div></div>
+            <div id="recentPreview"><div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-text">No transactions yet.</div></div></div>
           </div>
           <div class="dist-slide">
             <div class="dist-slide-label"><span class="dsl-text">Upcoming</span> <a onclick="navigateTo(&#39;recurring&#39;)">See all</a></div>
-            <div id="upcomingPreview"><div class="list-card"><div class="row-card">
-        <div class="row-left">
-          <div class="row-icon" style="background:rgba(193,80,46,0.15)">🔁</div>
-          <div class="row-main">
-            <div class="row-name">Partner</div>
-            <div class="row-meta">
-              <span class="stamp" style="color:#C1502E">Subscriptions</span>
-              <span class="row-date">Monthly · due 02 Aug</span>
-            </div>
-          </div>
-        </div>
-        <div class="row-amount neg">-₪40</div>
-      </div><div class="row-card">
-        <div class="row-left">
-          <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
-          <div class="row-main">
-            <div class="row-name">משכורת</div>
-            <div class="row-meta">
-              <span class="stamp" style="color:#4A8B5C">Salary</span>
-              <span class="row-date">Monthly · due 01 Sept</span>
-            </div>
-          </div>
-        </div>
-        <div class="row-amount pos">₪8,000</div>
-      </div></div></div>
+            <div id="upcomingPreview"><div class="empty-state"><div class="empty-state-icon">🔁</div><div class="empty-state-text">Nothing recurring added yet.</div></div></div>
           </div>
         </div>
       </div>
@@ -540,133 +457,13 @@
     <!-- TRANSACTIONS VIEW -->
     <section class="view" id="view-transactions">
       <div class="section-title">This Month's Transactions</div>
-      <div id="txList"><div class="list-card"><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(125,182,140,0.15)">💊</div>
-        <div class="row-main">
-          <div class="row-name">Gum</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#7DB68C">Lifestyle &amp; Health</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪50</div>
-    </div><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(43,43,44,0.15)">🎟️</div>
-        <div class="row-main">
-          <div class="row-name">Money</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#2B2B2C">Events/Attractions</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪100</div>
-    </div><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(199,160,107,0.15)">🛒</div>
-        <div class="row-main">
-          <div class="row-name">Shekem</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#C7A06B">Groceries</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪40</div>
-    </div><div class="row-card income">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
-        <div class="row-main">
-          <div class="row-name">Salary</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#4A8B5C">Salary</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount pos">₪8,000</div>
-    </div><div class="row-card income">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(125,182,140,0.15)">↩️</div>
-        <div class="row-main">
-          <div class="row-name">Money</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#7DB68C">Refund</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount pos">₪50</div>
-    </div><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(193,80,46,0.15)">🔁</div>
-        <div class="row-main">
-          <div class="row-name">שקם</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#C1502E">Subscriptions</span>
-            <span class="row-date">27 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪50</div>
-    </div><div class="row-card income">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
-        <div class="row-main">
-          <div class="row-name">Money</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#4A8B5C">Salary</span>
-            <span class="row-date">25 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount pos">₪500</div>
-    </div><div class="row-card expense">
-      <div class="row-left">
-        <div class="row-icon" style="background:rgba(92,74,58,0.15)">🏠</div>
-        <div class="row-main">
-          <div class="row-name">Zara</div>
-          <div class="row-meta">
-            <span class="stamp" style="color:#5C4A3A">Housing &amp; Bills</span>
-            <span class="row-date">04 Aug</span>
-          </div>
-        </div>
-      </div>
-      <div class="row-amount neg">-₪90</div>
-    </div></div></div>
+      <div id="txList"><div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-text">No transactions yet.</div></div></div>
     </section>
 
     <!-- RECURRING VIEW -->
     <section class="view" id="view-recurring">
       <div class="section-title">Recurring Income / Expenses</div>
-      <div id="recurringList"><div class="list-card"><div class="row-card">
-        <div class="row-left">
-          <div class="row-icon" style="background:rgba(193,80,46,0.15)">🔁</div>
-          <div class="row-main">
-            <div class="row-name">Partner</div>
-            <div class="row-meta">
-              <span class="stamp" style="color:#C1502E">Subscriptions</span>
-              <span class="row-date">Monthly · due 02 Aug</span>
-            </div>
-          </div>
-        </div>
-        <div class="row-amount neg">-₪40</div>
-      </div><div class="row-card">
-        <div class="row-left">
-          <div class="row-icon" style="background:rgba(74,139,92,0.15)">💼</div>
-          <div class="row-main">
-            <div class="row-name">משכורת</div>
-            <div class="row-meta">
-              <span class="stamp" style="color:#4A8B5C">Salary</span>
-              <span class="row-date">Monthly · due 01 Sept</span>
-            </div>
-          </div>
-        </div>
-        <div class="row-amount pos">₪8,000</div>
-      </div></div></div>
+      <div id="recurringList"><div class="empty-state"><div class="empty-state-icon">🔁</div><div class="empty-state-text">Nothing added yet.</div></div></div>
     </section>
 
   </main>
@@ -689,24 +486,21 @@
 <div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this) closeSheet()">
   <div class="sheet">
     <button class="close-x" onclick="closeSheet()">✕</button>
-    <h2 id="sheetTitle">Add Entry</h2>
+
+    <input type="text" id="fName" class="hero-input" placeholder="What was it for?">
 
     <div class="toggle-row">
-      <button type="button" id="modeExpense" class="active expense" onclick="setEntryMode(&#39;Expense&#39;)">Expense</button>
+      <button type="button" id="modeExpense" class="expense active" onclick="setEntryMode(&#39;Expense&#39;)">Expense</button>
       <button type="button" id="modeIncome" class="income" onclick="setEntryMode(&#39;Income&#39;)">Income</button>
     </div>
 
-    <div class="field">
-      <label>Name</label>
-      <input type="text" id="fName" placeholder="e.g. Super-Pharm">
-    </div>
     <div class="field">
       <label>Amount (₪)</label>
       <input type="number" inputmode="decimal" class="amount-input" id="fAmount" placeholder="0">
     </div>
     <div class="field">
       <label>Category</label>
-      <select id="fCategory"></select>
+      <select id="fCategory"><option>Subscriptions</option><option>Eating Out</option><option>Army</option><option>Lifestyle &amp; Health</option><option>Events/Attractions</option><option>Groceries</option><option>Transportation</option><option>Housing &amp; Bills</option><option>Friends/Social</option><option>Shopping</option><option>Other</option></select>
     </div>
     <div class="field">
       <label>Date</label>
@@ -747,7 +541,7 @@
 
     <button class="submit-btn" id="submitBtn" onclick="submitEntry()">Save</button>
     <button id="deleteBtn" onclick="deleteEntry()" style="display:none; width:100%; padding:12px; border:1px solid var(--expense); border-radius:12px; background:none; color:var(--expense); font-family:var(--font-body); font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">Delete</button>
-    <div class="status-msg" id="statusMsg"></div>
+    <div class="status-msg" id="statusMsg">Network error — check your BACKEND_URL.</div>
   </div>
 </div>
 
@@ -779,11 +573,11 @@
   const INCOME_CATEGORIES = ['Salary','Gift','Refund','Freelance','Other'];
 
   const CATEGORY_COLORS = {
-    'Subscriptions':'#C1502E', 'Eating Out':'#E0916A', 'Army':'#4A8B5C',
-    'Lifestyle & Health':'#7DB68C', 'Events/Attractions':'#2B2B2C', 'Groceries':'#C7A06B',
-    'Transportation':'#8C6B4A', 'Housing & Bills':'#5C4A3A', 'Friends/Social':'#E8B084',
-    'Shopping':'#A9673F', 'Other':'#9C9086',
-    'Salary':'#4A8B5C', 'Gift':'#C7A06B', 'Refund':'#7DB68C', 'Freelance':'#C1502E'
+    'Subscriptions':'#0A84FF', 'Eating Out':'#FF9F0A', 'Army':'#66D4CF',
+    'Lifestyle & Health':'#FF375F', 'Events/Attractions':'#BF5AF2', 'Groceries':'#FFD60A',
+    'Transportation':'#5E5CE6', 'Housing & Bills':'#AC8E68', 'Friends/Social':'#64D2FF',
+    'Shopping':'#D98A3D', 'Other':'#8E8E93',
+    'Salary':'#30D158', 'Gift':'#FFD60A', 'Refund':'#66D4CF', 'Freelance':'#0A84FF'
   };
 
   function hexToRgba(hex, alpha) {
@@ -808,7 +602,7 @@
   let lastBalances = { savings: 0, stockExchange: 0 };
   let lastMonthExpense = 0;
 
-  const OVERALL_COLORS = { expense: '#C1502E', savings: '#4A8B5C', stock: '#2B2B2C' };
+  const OVERALL_COLORS = { expense: '#FF453A', savings: '#30D158', stock: '#BF5AF2' };
 
   function monthKey(d) {
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
@@ -1125,6 +919,11 @@
     return `<div class="empty-state"><div class="empty-state-icon">${icon}</div><div class="empty-state-text">${text}</div></div>`;
   }
 
+  function showSuccessCheck(msgElId, icon, color) {
+    const el = document.getElementById(msgElId);
+    el.innerHTML = `<span class="success-check" style="background:${color || 'var(--income)'}">${icon || '✓'}</span>`;
+  }
+
   function escapeHtml(str) {
     const d = document.createElement('div');
     d.textContent = str ?? '';
@@ -1175,7 +974,8 @@
         lastBalances = { savings, stockExchange };
         balancesCache = lastBalances;
         renderOverallDonut();
-        document.getElementById('balStatusMsg').textContent = 'Saved.';
+        document.getElementById('balStatusMsg').textContent = '';
+        showSuccessCheck('balStatusMsg');
         setTimeout(closeBalancesEdit, 400);
       } else {
         document.getElementById('balStatusMsg').textContent = 'Error: ' + res.error;
@@ -1202,7 +1002,7 @@
   function openSheet(context = 'transaction') {
     sheetContext = context;
     editingId = null;
-    document.getElementById('sheetTitle').textContent = context === 'recurring' ? 'Add Recurring' : 'Add Entry';
+    document.getElementById('fName').placeholder = context === 'recurring' ? 'What is this subscription/income?' : 'What was it for?';
     document.getElementById('recurringFields').style.display = context === 'recurring' ? 'block' : 'none';
     document.getElementById('fDate').value = defaultDateForBrowsedMonth().toISOString().slice(0,10);
     document.getElementById('fNextDue').value = new Date().toISOString().slice(0,10);
@@ -1222,7 +1022,6 @@
     if (!t) return;
     sheetContext = 'transaction';
     editingId = id;
-    document.getElementById('sheetTitle').textContent = 'Edit Entry';
     document.getElementById('recurringFields').style.display = 'none';
     setEntryMode(t.amount < 0 ? 'Expense' : 'Income');
     document.getElementById('fName').value = t.name;
@@ -1286,7 +1085,7 @@
       }
       const res = await apiPost(payload);
       if (res.success) {
-        document.getElementById('statusMsg').textContent = 'Saved.';
+        showSuccessCheck('statusMsg');
         setTimeout(() => { closeSheet(); invalidateAndReload(); }, 400);
       } else {
         document.getElementById('statusMsg').textContent = 'Error: ' + res.error;
@@ -1307,7 +1106,8 @@
     try {
       const res = await apiPost({ action: 'deleteTransaction', id: editingId });
       if (res.success) {
-        setTimeout(() => { closeSheet(); invalidateAndReload(); }, 200);
+        showSuccessCheck('statusMsg', '🗑', 'var(--expense)');
+        setTimeout(() => { closeSheet(); invalidateAndReload(); }, 300);
       } else {
         document.getElementById('statusMsg').textContent = 'Error: ' + res.error;
       }
