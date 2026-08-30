@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_19.html -->
+<!-- saved from url=(0050)file:///C:/Users/uriga/Downloads/dashboard_21.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
@@ -92,8 +92,11 @@
   /* ---------- Views ---------- */
   main { flex: 1; overflow-y: auto; padding: 0 20px 140px; }
   .view { display: none; }
-  .view.active { display: block; animation: fade .18s ease; }
-  @keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+  .view.active { display: block; }
+  .view.active.slide-from-right { animation: slideFromRight .3s cubic-bezier(.25,.8,.5,1); }
+  .view.active.slide-from-left { animation: slideFromLeft .3s cubic-bezier(.25,.8,.5,1); }
+  @keyframes slideFromRight { from { opacity: 0; transform: translateX(28px);} to {opacity:1; transform:none;} }
+  @keyframes slideFromLeft { from { opacity: 0; transform: translateX(-28px);} to {opacity:1; transform:none;} }
 
   /* ---------- Balance hero ---------- */
   .balance-hero {
@@ -225,7 +228,6 @@
   }
   .row-card {
     background: var(--card);
-    border-left: 3px solid transparent;
     border-bottom: 1px solid var(--line);
     padding: 14px 16px;
     display: flex;
@@ -233,10 +235,10 @@
     justify-content: space-between;
     gap: 10px;
   }
+  .row-card.expense { background: linear-gradient(to right, color-mix(in srgb, var(--expense) 20%, transparent), transparent 45%), var(--card); }
+  .row-card.income { background: linear-gradient(to right, color-mix(in srgb, var(--income) 20%, transparent), transparent 45%), var(--card); }
   .list-card .row-card:last-child { border-bottom: none; }
   .row-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .row-card.expense { border-left-color: var(--expense); }
-  .row-card.income { border-left-color: var(--income); }
   .row-icon {
     width: 34px; height: 34px; border-radius: 12px;
     background: var(--paper);
@@ -490,7 +492,7 @@
     <input type="text" id="fName" class="hero-input" placeholder="What was it for?">
 
     <div class="toggle-row">
-      <button type="button" id="modeExpense" class="expense active" onclick="setEntryMode(&#39;Expense&#39;)">Expense</button>
+      <button type="button" id="modeExpense" class="active expense" onclick="setEntryMode(&#39;Expense&#39;)">Expense</button>
       <button type="button" id="modeIncome" class="income" onclick="setEntryMode(&#39;Income&#39;)">Income</button>
     </div>
 
@@ -500,7 +502,7 @@
     </div>
     <div class="field">
       <label>Category</label>
-      <select id="fCategory"><option>Subscriptions</option><option>Eating Out</option><option>Army</option><option>Lifestyle &amp; Health</option><option>Events/Attractions</option><option>Groceries</option><option>Transportation</option><option>Housing &amp; Bills</option><option>Friends/Social</option><option>Shopping</option><option>Other</option></select>
+      <select id="fCategory"></select>
     </div>
     <div class="field">
       <label>Date</label>
@@ -541,7 +543,7 @@
 
     <button class="submit-btn" id="submitBtn" onclick="submitEntry()">Save</button>
     <button id="deleteBtn" onclick="deleteEntry()" style="display:none; width:100%; padding:12px; border:1px solid var(--expense); border-radius:12px; background:none; color:var(--expense); font-family:var(--font-body); font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">Delete</button>
-    <div class="status-msg" id="statusMsg">Network error — check your BACKEND_URL.</div>
+    <div class="status-msg" id="statusMsg"></div>
   </div>
 </div>
 
@@ -656,10 +658,18 @@
 
   let tabHistory = [];
 
+  const TAB_ORDER = ['home', 'transactions', 'recurring'];
+
   function renderTab(tab) {
+    const oldIdx = TAB_ORDER.indexOf(currentTab);
+    const newIdx = TAB_ORDER.indexOf(tab);
+    const direction = newIdx > oldIdx ? 'slide-from-right' : (newIdx < oldIdx ? 'slide-from-left' : '');
+
     currentTab = tab;
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + tab).classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active', 'slide-from-right', 'slide-from-left'));
+    const nextView = document.getElementById('view-' + tab);
+    nextView.classList.add('active');
+    if (direction) nextView.classList.add(direction);
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.getElementById('backBtn').classList.toggle('always', tabHistory.length > 0);
   }
@@ -810,13 +820,14 @@
     const d = new Date(t.date);
     const icon = CATEGORY_ICONS[t.category] || '📎';
     const clickable = t.id ? `onclick="openEditTransaction('${t.id}')" style="cursor:pointer;"` : '';
+    const stampHtml = t.category === 'Subscriptions' ? `<span class="stamp" style="color:${color}">${escapeHtml(t.category)}</span>` : '';
     return `<div class="row-card ${isPos ? 'income' : 'expense'}" ${clickable}>
       <div class="row-left">
         <div class="row-icon" style="background:${hexToRgba(color,0.15)}">${renderIcon(icon)}</div>
         <div class="row-main">
           <div class="row-name">${escapeHtml(t.name)}</div>
           <div class="row-meta">
-            <span class="stamp" style="color:${color}">${escapeHtml(t.category)}</span>
+            ${stampHtml}
             <span class="row-date">${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
           </div>
         </div>
@@ -1170,7 +1181,6 @@
 
   // Swipe left/right anywhere in the main content to move between Home / Transactions / Recurring
   (function setupTabSwipe() {
-    const TAB_ORDER = ['home', 'transactions', 'recurring'];
     const main = document.querySelector('main');
     let startX = 0, startY = 0, tracking = false, horizontal = false;
     main.addEventListener('touchstart', (e) => {
